@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>RewardZone</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+body { background: #0f172a; display: flex; justify-content: center; min-height: 100vh; width: 100%; padding: 10px 0; }
+.phone-container { width: 100%; max-width: 410px; background: #0b0f19; min-height: 95vh; display: flex; flex-direction: column; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,.6); position: relative; overflow: hidden; border: 4px solid #1e293b; color: #fff; }
+.screen { display: none; flex: 1; flex-direction: column; padding: 30px 24px; justify-content: center; background: linear-gradient(135deg, #131a26, #0b0f19); }
+.screen.active { display: flex; }
+.app-title { text-align: center; font-size: 34px; font-weight: 800; color: #4f46e5; margin-bottom: 5px; }
+.app-subtitle { text-align: center; color: #94a3b8; font-size: 13px; margin-bottom: 40px; }
+.divider-line { margin: 30px 0 20px; border: 0; border-top: 1px solid #1e293b; }
+input { width: 100%; padding: 16px; margin-bottom: 16px; border: 2px solid #334155; background: #1e293b; border-radius: 14px; font-size: 16px; outline: none; font-weight: 500; color: #fff; text-align: center; }
+input:focus { border-color: #4f46e5; }
+.btn { background: linear-gradient(135deg, #4f46e5, #3730a3); color: #fff; border: none; padding: 16px; border-radius: 14px; font-size: 18px; font-weight: bold; cursor: pointer; width: 100%; text-align: center; margin-bottom: 10px; }
+.btn:active, .click-btn:active { transform: scale(.98); }
+.btn-admin { background: transparent; color: #ef4444; margin-top: 15px; font-size: 14px; font-weight: 700; border: none; cursor: pointer; width: 100%; text-align: center; }
+.main-app-screen { display: none; flex-direction: column; flex: 1; background: #0b0f19; min-height: 0; }
+.main-app-screen.active { display: flex; }
+.app-header { background: #131a26; padding: 16px 20px; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e293b; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.header-coin-badge { background: #1e293b; border: 1px solid #fbbf24; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #fbbf24; white-space: nowrap; }
+.logout-btn { cursor: pointer; font-size: 18px; background: none; border: none; color: #fff; }
+.app-body { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; }
+.tab-content { display: none; flex-direction: column; align-items: center; width: 100%; }
+.tab-content.active { display: flex; }
+.card-glow { background: linear-gradient(135deg, #1e293b, #111827); border: 1px solid #334155; border-radius: 20px; width: 100%; padding: 24px; text-align: center; }
+.r-coin-logo { width: 85px; height: 85px; background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; font-size: 46px; font-weight: 900; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 6px 15px rgba(217,119,6,.3); border: 4px solid #1e293b; }
+.coin-display { font-size: 56px; font-weight: 900; margin: 12px 0; display: flex; align-items: center; justify-content: center; }
+.small-r { font-size: 32px; color: #fbbf24; margin-left: 5px; }
+.balance-text { color: #94a3b8; font-size: 15px; font-weight: 600; }
+.click-ad-box { background: #131a26; border: 2px dashed #4f46e5; border-radius: 20px; padding: 24px; width: 100%; text-align: center; margin-top: 25px; }
+.click-ad-text { margin-bottom: 20px; color: #cbd5e1; font-weight: 600; font-size: 15px; }
+.click-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; padding: 18px; border-radius: 14px; font-size: 18px; font-weight: 800; border: none; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(217,119,6,.4); }
+.click-btn:disabled { opacity: .5; cursor: wait; }
+.wallet-card { background: linear-gradient(135deg, #1e293b, #0f172a); width: 100%; padding: 20px; border-radius: 20px; text-align: center; margin-bottom: 20px; border: 1px solid #334155; }
+.wallet-val-title { color: #94a3b8; font-size: 13px; font-weight: 700; text-transform: uppercase; }
+.wallet-val-amount { color: #38bdf8; font-size: 38px; font-weight: 900; margin-top: 5px; }
+.time-notice-box { background: rgba(239,68,68,.1); border: 1px dashed #ef4444; padding: 12px; border-radius: 12px; width: 100%; margin-bottom: 20px; text-align: center; color: #fca5a5; font-weight: 700; font-size: 13px; }
+.grid-section-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; width: 100%; color: #94a3b8; text-align: left; text-transform: uppercase; letter-spacing: .5px; }
+.withdraw-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; margin-bottom: 25px; }
+.grid-box { background: #131a26; border: 1px solid #1e293b; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; align-items: center; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,.3); text-align: center; }
+.grid-box.wide { grid-column: span 2; }
+.box-logo-tag { position: absolute; right: 12px; top: 12px; font-size: 12px; font-weight: 900; color: #38bdf8; }
+.box-rupees { font-size: 32px; font-weight: 900; margin: 10px 0 2px; }
+.box-desc { font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
+.box-coins-needed { background: #1e293b; border: 1px solid #fbbf24; color: #fbbf24; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-bottom: 10px; }
+.grid-withdraw-btn { color: #fff; border: none; padding: 8px 0; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; width: 100%; }
+.btn-paytm { background: linear-gradient(135deg, #00baf2, #0056b3); }
+.btn-gold { background: linear-gradient(135deg, #fbbf24, #d97706); }
+.withdraw-item { background: #131a26; border: 1px solid #1e293b; padding: 16px; border-radius: 16px; margin-bottom: 12px; width: 100%; text-align: left; font-size: 14px; line-height: 1.5; }
+.code-box { background: #1e293b; padding: 8px; border-radius: 8px; margin-top: 6px; word-break: break-all; user-select: all; }
+.account-profile-box { background: #131a26; border: 1px solid #1e293b; width: 100%; padding: 25px; border-radius: 20px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.profile-avatar { width: 60px; height: 60px; background: #1e293b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+.profile-badge { background: rgba(16,185,129,.2); color: #34d399; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-top: 10px; }
+.admin-title { color: #ef4444; font-size: 22px; font-weight: 800; width: 100%; }
+.admin-subtitle { font-size: 14px; margin-bottom: 20px; width: 100%; color: #94a3b8; }
+.full-width { width: 100%; }
+.req-card { background: #131a26; border: 1px solid #334155; width: 100%; padding: 18px; border-radius: 18px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; text-align: left; }
+.req-card input { margin: 10px 0; padding: 12px; font-size: 14px; text-align: left; }
+.row { display: flex; gap: 10px; }
+.admin-send-btn { flex: 1; background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; border: none; padding: 12px; border-radius: 12px; font-weight: 800; cursor: pointer; }
+.reject-btn { flex: 1; background: #ef4444; color: #fff; border: none; padding: 12px; border-radius: 12px; font-weight: 800; cursor: pointer; }
+.empty { color: gray; text-align: center; margin-top: 40px; width: 100%; }
+.nav-bar { background: #131a26; border-top: 1px solid #1e293b; display: flex; height: 75px; padding: 8px 4px 10px; }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; cursor: pointer; font-size: 10px; font-weight: 800; gap: 2px; }
+.nav-icon-wrapper { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: .3s; font-size: 20px; background: #1e293b; }
+.nav-item.active { color: #4f46e5; }
+.nav-item.active .nav-icon-wrapper { background: #e0e7ff; box-shadow: 0 4px 10px rgba(79,70,229,.3); }
+
+/* ===== PREMIUM THEME ===== */
+:root { --gold:#fbbf24; --vio:#7c3aed; --ind:#4f46e5; --glass:rgba(255,255,255,.04); --line:rgba(255,255,255,.08); }
+* { font-family: 'Inter','Segoe UI',system-ui,-apple-system,sans-serif; -webkit-tap-highlight-color: transparent; }
+body { background: radial-gradient(circle at 50% -10%, #1e1b4b 0%, #070a14 60%); }
+.phone-container { background: #0a0e1a; border: 1px solid var(--line); box-shadow: 0 25px 60px rgba(0,0,0,.7), 0 0 80px rgba(124,58,237,.15); }
+.screen { background: radial-gradient(circle at 50% 0%, #241b5c 0%, #0a0e1a 55%); }
+.logo { width: 92px; height: 92px; margin: 0 auto 18px; filter: drop-shadow(0 10px 25px rgba(124,58,237,.55)); animation: float 3s ease-in-out infinite; }
+.logo svg { width: 100%; height: 100%; }
+@keyframes float { 50% { transform: translateY(-6px); } }
+.app-title { background: linear-gradient(90deg, #a5b4fc, #fbbf24); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: .5px; }
+input { background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(8px); }
+input:focus { border-color: var(--vio); box-shadow: 0 0 0 3px rgba(124,58,237,.25); }
+.btn { background: linear-gradient(135deg, var(--ind), var(--vio)); box-shadow: 0 8px 22px rgba(124,58,237,.4); }
+.app-header { background: linear-gradient(180deg, #151a33, #0e1226); border-bottom: 1px solid var(--line); }
+.header-coin-badge { background: linear-gradient(135deg, rgba(251,191,36,.2), rgba(217,119,6,.1)); border-color: rgba(251,191,36,.5); }
+.card-glow { background: linear-gradient(145deg, rgba(79,70,229,.25), rgba(124,58,237,.08) 60%, rgba(251,191,36,.08)); border: 1px solid var(--line); box-shadow: 0 12px 30px rgba(0,0,0,.4); }
+.coin-display { background: linear-gradient(90deg, #fff, #fde68a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.small-r { color: var(--gold); -webkit-text-fill-color: var(--gold); }
+.r-coin-logo { animation: float 3s ease-in-out infinite; }
+.click-ad-box { background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(10px); }
+.click-btn { background: linear-gradient(135deg, #fbbf24, #f59e0b 50%, #d97706); box-shadow: 0 8px 22px rgba(245,158,11,.4); transition: .15s; }
+.grid-box, .withdraw-item, .req-card, .wallet-card, .account-profile-box { background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(10px); }
+.wallet-card { background: linear-gradient(145deg, rgba(56,189,248,.15), rgba(79,70,229,.1)); }
+.nav-bar { background: rgba(14,18,38,.92); backdrop-filter: blur(14px); border-top: 1px solid var(--line); padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+.nav-icon-wrapper { background: transparent; }
+.nav-item.active { color: #a5b4fc; }
+.nav-item.active .nav-icon-wrapper { background: linear-gradient(135deg, var(--ind), var(--vio)); box-shadow: 0 6px 16px rgba(124,58,237,.5); transform: translateY(-4px); }
+.tab-content.active { animation: fade .35s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(8px); } }
+#splash { position: absolute; inset: 0; z-index: 99; background: radial-gradient(circle at 50% 30%, #2a1f6e, #070a14); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity .5s; }
+#splash .logo { width: 120px; height: 120px; }
+#splash.hide { opacity: 0; pointer-events: none; }
+#toast { position: absolute; top: 18px; left: 50%; transform: translate(-50%, -120px); background: rgba(30,27,75,.96); border: 1px solid rgba(165,180,252,.35); padding: 12px 18px; border-radius: 14px; font-size: 14px; font-weight: 600; z-index: 100; max-width: 88%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,.5); transition: transform .35s cubic-bezier(.2,1.2,.4,1); }
+#toast.show { transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+<div class="phone-container">
+  <div id="splash"><div class="logo"></div><h1 class="app-title" style="margin:0">RewardZone</h1></div>
+  <div id="toast"></div>
+
+  <!-- LOGIN -->
+  <div id="loginScreen" class="screen active">
+    <div class="logo"></div>
+    <h1 class="app-title">RewardZone</h1>
+    <p class="app-subtitle">Watch · Earn · Withdraw</p>
+    <input type="email" id="emailInput" placeholder="अपनी ईमेल आईडी दर्ज करें" autocomplete="email">
+    <input type="password" id="userPass" placeholder="पासवर्ड (कम से कम 6 अक्षर)" autocomplete="current-password">
+    <input id="refInput" placeholder="रेफरल कोड (अगर है)" style="text-transform:uppercase">
+    <button id="mainLoginBtn" class="btn">Login / Sign Up</button>
+    <hr class="divider-line">
+    <input type="password" id="passInput" placeholder="ओनर पासवर्ड (ऊपर ओनर ईमेल डालो)">
+    <button id="secretAdminBtn" class="btn-admin">👑 Owner Dashboard Login</button>
+    <p id="legalLink" style="text-align:center;color:#64748b;font-size:12px;margin-top:20px;cursor:pointer">Privacy Policy & Terms</p>
+  </div>
+  <div id="legal" class="screen" style="justify-content:flex-start;font-size:13px;line-height:1.7;color:#cbd5e1">
+    <h3 style="margin-bottom:12px">Privacy Policy & Terms</h3>
+    <p>• हम सिर्फ आपकी ईमेल, कॉइन्स और withdraw रिक्वेस्ट सेव करते हैं।<br>• एक डिवाइस पर एक ही अकाउंट मान्य है। Fake/duplicate अकाउंट, bots या VPN मिलने पर अकाउंट बैन और कॉइन्स ज़ब्त हो सकते हैं।<br>• Payout owner की जाँच के बाद होता है; समय और रेट बदल सकते हैं।<br>• आपका डेटा किसी को बेचा नहीं जाता।</p>
+    <button class="btn" id="legalClose" style="margin-top:20px">ठीक है</button>
+  </div>
+
+  <!-- APP -->
+  <div id="appScreen" class="main-app-screen">
+    <div class="app-header">
+      <span id="headerTitle">RewardZone</span>
+      <div class="header-right">
+        <div class="header-coin-badge" id="coinBadge">🪙 <span id="headerCoins">0</span></div>
+        <button class="logout-btn" id="logoutBtn" title="Logout">🚪</button>
+      </div>
+    </div>
+
+    <div class="app-body">
+      <div id="earnTab" class="tab-content active">
+        <div class="card-glow">
+          <div class="r-coin-logo">R</div>
+          <div class="coin-display"><span id="userCoins">0</span><span class="small-r">R</span></div>
+          <p class="balance-text">आपका कुल बैलेंस</p>
+        </div>
+        <div class="click-ad-box">
+          <p class="click-ad-text">वीडियो विज्ञापन देखें और कॉइंस कमाएं</p>
+          <button id="watchAdButton" class="click-btn">📺 Watch Video Ad</button>
+          <p id="adLeft" style="font-size:12px;color:#94a3b8;margin-top:10px"></p>
+        </div>
+        <div class="click-ad-box" style="border-color:#22c55e">
+          <p class="click-ad-text">🗓️ Daily Rewards <span id="streakTxt"></span></p>
+          <div class="row">
+            <button id="checkinBtn" class="click-btn" style="padding:14px;font-size:15px">✅ Check-in</button>
+            <button id="spinBtn" class="click-btn" style="padding:14px;font-size:15px;background:linear-gradient(135deg,#8b5cf6,#6d28d9)">🎡 Spin</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="inviteTab" class="tab-content">
+        <div class="card-glow">
+          <h3>🎁 Refer & Earn</h3>
+          <p style="color:#94a3b8;margin:10px 0 20px;font-size:14px">दोस्त आपके कोड से साइन अप करे तो दोनों को 100-100 R-Coins!</p>
+          <button id="copyCodeBtn" class="btn">📋 Copy Code: <span id="myCode"></span></button>
+          <button id="shareWhatsappBtn" class="click-btn" style="background:#25D366">🟢 Share on WhatsApp</button>
+        </div>
+      </div>
+
+      <div id="walletTab" class="tab-content">
+        <div class="wallet-card">
+          <p class="wallet-val-title">Estimated Value</p>
+          <p class="wallet-val-amount">₹<span id="walletRupees">0.00</span></p>
+        </div>
+        <div class="time-notice-box">⏰ विड्रॉ का समय: सुबह 11:00 से शाम 05:00 बजे तक</div>
+        <h3 class="grid-section-title">Paytm Cash</h3>
+        <div class="withdraw-grid" id="paytmGrid"></div>
+        <h3 class="grid-section-title">Google Play Codes</h3>
+        <div class="withdraw-grid" id="playGrid"></div>
+        <h3 class="grid-section-title">UPI Cash</h3>
+        <div class="withdraw-grid" id="upiGrid"></div>
+      </div>
+
+      <div id="tasksTab" class="tab-content">
+        <h3 class="grid-section-title">📋 Tasks (Proof भेजो, कॉइन्स पाओ)</h3>
+        <div id="taskBox" class="full-width"></div>
+      </div>
+
+      <div id="historyTab" class="tab-content">
+        <h3 class="grid-section-title">Your Withdraw History</h3>
+        <div id="userHistory" class="full-width"></div>
+      </div>
+
+      <div id="accountTab" class="tab-content">
+        <div class="account-profile-box">
+          <div class="profile-avatar">👤</div>
+          <h3 id="profileEmail" style="margin-top:15px;font-size:16px;word-break:break-all"></h3>
+          <span class="profile-badge">Verified User ✅</span>
+          <p style="margin-top:20px;color:#94a3b8">कुल कॉइन्स: <b style="color:#fff" id="accountCoins">0</b></p>
+        </div>
+      </div>
+
+      <div id="adminTab" class="tab-content">
+        <h2 class="admin-title">Owner Dashboard 👑</h2>
+        <div class="req-card">
+          <b>⚙️ Settings (यहीं से बदलो)</b>
+          <p style="font-size:12px;color:#94a3b8;margin-top:8px">रोज़ ads की लिमिट (0 = unlimited)</p><input id="cfgMax" type="number" min="0">
+          <p style="font-size:12px;color:#94a3b8;margin-top:8px">दो ads के बीच गैप (सेकंड)</p><input id="cfgGap" type="number" min="0">
+          <p style="font-size:12px;color:#94a3b8;margin-top:8px">एक ad पर कॉइन्स</p><input id="cfgRew" type="number" min="0">
+          <p style="font-size:12px;color:#94a3b8;margin-top:8px">Referral बोनस (दोनों को)</p><input id="cfgRef" type="number" min="0">
+          <button class="admin-send-btn" id="cfgSave" style="width:100%;margin-top:6px">Save ✅</button>
+        </div>
+        <div class="req-card">
+          <b>➕ नया Task जोड़ो</b>
+          <input id="tkTitle" placeholder="Task का नाम (जैसे: Instagram फॉलो करो)">
+          <input id="tkCoins" type="number" min="1" placeholder="कितने कॉइन्स मिलें">
+          <input id="tkLink" placeholder="लिंक (ज़रूरी नहीं)">
+          <button class="admin-send-btn" id="tkAdd" style="width:100%">Add ✅</button>
+          <div id="adminTasks" style="margin-top:12px"></div>
+        </div>
+        <div class="req-card">
+          <b>📥 Task Proofs (जाँच बाकी)</b>
+          <button class="grid-withdraw-btn btn-paytm" id="subRefresh" style="margin-top:8px">🔄 Refresh</button>
+          <div id="adminSubs" style="margin-top:10px"></div>
+        </div>
+        <div id="adminStats" class="withdraw-item"></div>
+        <p class="admin-subtitle">Pending User Cashouts</p>
+        <div id="adminQueue" class="full-width"></div>
+        <p class="admin-subtitle" style="margin-top:20px">Users</p>
+        <div id="adminUsers" class="full-width"></div>
+      </div>
+    </div>
+
+    <div class="nav-bar" id="mainNavBar">
+      <div class="nav-item active" data-tab="earn"><div class="nav-icon-wrapper">🎁</div><span>Earn</span></div>
+      <div class="nav-item" data-tab="tasks"><div class="nav-icon-wrapper">📋</div><span>Tasks</span></div>
+      <div class="nav-item" data-tab="invite"><div class="nav-icon-wrapper">🤝</div><span>Invite</span></div>
+      <div class="nav-item" data-tab="wallet"><div class="nav-icon-wrapper">💼</div><span>Payout</span></div>
+      <div class="nav-item" data-tab="history"><div class="nav-icon-wrapper">⏳</div><span>History</span></div>
+      <div class="nav-item" data-tab="account"><div class="nav-icon-wrapper">👤</div><span>Profile</span></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script>
+/* ================= SETTINGS ================= */
+// Firebase Realtime Database URL (Firebase console > Realtime Database se copy karo).
+// Agar yahan galat/khali hai to app sirf us phone/browser me chalega (localStorage).
+var FIREBASE_API_KEY = "AIzaSyDMlwgF4y0IhX5F4F_NHO3DzQy0oxzdsNU";   // Firebase > Project settings > Your apps > Web app > apiKey
+var FIREBASE_AUTH_DOMAIN = "reward-zone-ea245.firebaseapp.com";
+var FIREBASE_DB_URL = "https://reward-zone-ea245-default-rtdb.asia-southeast1.firebasedatabase.app";
+// Owner password ka SHA-256 hash (password plain text me file me nahi hai)
+var ADMIN_HASH = "4b29059c5951b399ad033d8eb494ebbbdaf41e1edfaa400ee7160f9a0a94e3fe";
+var START_COINS = 100, AD_REWARD = 10, SHARE_REWARD = 100, COINS_PER_RUPEE = 200;
+var PAYTM = [[5,1000,"Instant"],[10,1900,"100 Off 🔥"],[20,3700,"300 Off 🔥"],[30,5500,"500 Off 🔥"],[50,9000,"1000 Off 🚀"],[100,17500,"2500 Off 🚀"],[500,85000,"🥳 15,000 COINS HUGE OFF!",1]];
+var PLAY  = [[10,2000,"Play Code"],[20,3800,"200 Off 🔥"],[30,5500,"500 Off 🔥"],[50,9000,"1000 Off 🚀"],[100,17000,"🚀 3000 COINS SUPER OFF!",1]];
+
+var UPI = [[10,2000,"Min ₹10"],[20,3800,"UPI"],[50,9000,"UPI"],[100,17000,"UPI Mega",1]];
+var ADMOB_REWARD_ID = "ca-app-pub-3940256099942544/5224354917"; // TEST id. Live jaane se pehle apna Rewarded Ad Unit ID daalo
+var REF_BONUS = 100;   // referral par dono ko itne coins
+var AD_MAX = 50, AD_GAP = 10000, CHECKIN = [10,15,20,25,30,40,100], SPIN = [5,5,10,10,15,20,30,50];
+
+/* ================= ICON, SPLASH, TOAST ================= */
+var ICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f46e5"/><stop offset="1" stop-color="#9333ea"/></linearGradient><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#d97706"/></linearGradient></defs><rect width="512" height="512" rx="112" fill="url(#g1)"/><circle cx="256" cy="256" r="148" fill="url(#g2)"/><circle cx="256" cy="256" r="118" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="8"/><text x="256" y="318" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="190" text-anchor="middle" fill="#fff">R</text></svg>';
+var ICON_URI = 'data:image/svg+xml,' + encodeURIComponent(ICON);
+document.querySelectorAll('.logo').forEach(function(el){ el.innerHTML = ICON; });
+['icon', 'apple-touch-icon'].forEach(function(r){ var l = document.createElement('link'); l.rel = r; l.href = ICON_URI; document.head.appendChild(l); });
+try {
+  var mf = { name: "RewardZone", short_name: "RewardZone", display: "standalone", background_color: "#0a0e1a", theme_color: "#0a0e1a", icons: [{ src: ICON_URI, sizes: "512x512", type: "image/svg+xml" }] };
+  var ml = document.createElement('link'); ml.rel = 'manifest'; ml.href = URL.createObjectURL(new Blob([JSON.stringify(mf)], { type: 'application/json' })); document.head.appendChild(ml);
+} catch (e) {}
+setTimeout(function(){ document.getElementById('splash').classList.add('hide'); }, 1400);
+var toastT;
+window.alert = function(m){
+  var t = document.getElementById('toast'); t.textContent = m; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+};
+
+/* ================= HELPERS ================= */
+var $ = function(id){ return document.getElementById(id); };
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function encKey(e){ return e.replace(/[.#$\[\]\/]/g, ','); }
+function lsGet(k, d){ try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } }
+function lsSet(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+
+/* ================= STORAGE (Firebase ya local) ================= */
+var useFB = false, fbdb = null, fbauth = null, authOn = false;
+try {
+  if (window.firebase && FIREBASE_DB_URL && FIREBASE_DB_URL.indexOf("http") === 0) {
+    firebase.initializeApp({ apiKey: FIREBASE_API_KEY, authDomain: FIREBASE_AUTH_DOMAIN, databaseURL: FIREBASE_DB_URL });
+    fbdb = firebase.database(); useFB = true;
+    if (firebase.auth && FIREBASE_API_KEY.indexOf("PASTE") < 0) { fbauth = firebase.auth(); authOn = true; }
+  }
+} catch(e) { useFB = false; }
+
+var localListeners = [];
+function localNotify(){ var r = Object.values(lsGet('rz_reqs', {})); localListeners.forEach(function(f){ f(r); }); }
+window.addEventListener('storage', localNotify);
+
+function withTimeout(p, ms){
+  return new Promise(function(res, rej){
+    var t = setTimeout(function(){ rej(new Error("timeout")); }, ms);
+    p.then(function(v){ clearTimeout(t); res(v); }, function(e){ clearTimeout(t); rej(e); });
+  });
+}
+
+var store = {
+  load: function(email){
+    if (useFB) {
+      var ref = fbdb.ref('users/' + encKey(email) + '/coins');
+      return withTimeout(ref.once('value'), 7000).then(function(s){
+        if (s.exists()) return s.val();
+        return ref.set(START_COINS).then(function(){ return START_COINS; });
+      });
+    }
+    var u = lsGet('rz_users', {});
+    if (u[email] == null) { u[email] = START_COINS; lsSet('rz_users', u); }
+    return Promise.resolve(u[email]);
+  },
+  add: function(email, n){
+    if (useFB) return fbdb.ref('users/' + encKey(email) + '/coins').transaction(function(c){ return (c || 0) + n; }).then(function(r){ return r.snapshot.val(); });
+    var u = lsGet('rz_users', {}); u[email] = (u[email] || 0) + n; lsSet('rz_users', u); return Promise.resolve(u[email]);
+  },
+  spend: function(email, n){            // returns new balance, or null if not enough
+    if (useFB) return fbdb.ref('users/' + encKey(email) + '/coins').transaction(function(c){
+      if (c === null) return 0; return c >= n ? c - n : undefined;
+    }).then(function(r){ return r.committed ? r.snapshot.val() : null; });
+    var u = lsGet('rz_users', {}); if ((u[email] || 0) < n) return Promise.resolve(null);
+    u[email] -= n; lsSet('rz_users', u); return Promise.resolve(u[email]);
+  },
+  put: function(req){
+    if (useFB) return fbdb.ref('requests/' + req.id).set(req);
+    var r = lsGet('rz_reqs', {}); r[req.id] = req; lsSet('rz_reqs', r); localNotify(); return Promise.resolve();
+  },
+  patch: function(id, obj){
+    if (useFB) return fbdb.ref('requests/' + id).update(obj);
+    var r = lsGet('rz_reqs', {}); if (r[id]) Object.assign(r[id], obj); lsSet('rz_reqs', r); localNotify(); return Promise.resolve();
+  },
+  listen: function(cb, who){
+    if (useFB) { var q = fbdb.ref('requests'); if (who) q = q.orderByChild('user').equalTo(who); store.q = q; q.on('value', function(s){ cb(Object.values(s.val() || {})); }); return; }
+    localListeners.push(cb); localNotify();
+  },
+  stop: function(){
+    if (store.q) store.q.off(); localListeners = [];
+  }
+};
+
+var kv = function(){ return lsGet('rz_kv', {}); };
+store.get = function(p){
+  if (useFB) return fbdb.ref(p).once('value').then(function(s){ return s.val(); });
+  var v = kv()[p]; return Promise.resolve(v == null ? null : v);
+};
+store.set = function(p, v){
+  if (useFB) return fbdb.ref(p).set(v);
+  var d = kv(); d[p] = v; lsSet('rz_kv', d); return Promise.resolve();
+};
+store.list = function(p){
+  var out = [];
+  var flat = function(v){ if (v && typeof v === 'object') { if (v.id && v.ts) out.push(v); else Object.values(v).forEach(flat); } };
+  if (useFB) return store.get(p).then(function(v){ flat(v); return out; });
+  var d = kv(); Object.keys(d).forEach(function(k){ if (k.indexOf(p + '/') === 0) flat(d[k]); });
+  return Promise.resolve(out);
+};
+store.allUsers = function(){
+  if (useFB) return Promise.all([store.get('users'), store.get('meta'), store.get('bans')]).then(function(a){
+    var u = a[0] || {}, m = a[1] || {}, bn = a[2] || {};
+    return Object.keys(m).map(function(k){ return { email: m[k].email, coins: (u[k] || {}).coins || 0, banned: !!bn[k] }; });
+  });
+  var u = lsGet('rz_users', {}), d = kv();
+  return Promise.resolve(Object.keys(u).map(function(e){ return { email: e, coins: u[e], banned: !!d['bans/' + encKey(e)] }; }));
+};
+
+/* ================= STATE ================= */
+var coins = 0, currentUser = "", requests = [], isAdmin = false;
+
+function updateUI(){
+  $('userCoins').textContent = coins; $('accountCoins').textContent = coins; $('headerCoins').textContent = coins;
+  $('walletRupees').textContent = (coins / COINS_PER_RUPEE).toFixed(2);
+}
+
+/* ================= TABS ================= */
+var TITLES = { earn:"RewardZone", tasks:"Tasks 📋", invite:"Refer & Earn 🎁", wallet:"Payout", history:"Withdraw History ⏳", account:"My Profile 👤", admin:"Owner Dashboard 👑" };
+function switchTab(t){
+  ['earn','tasks','invite','wallet','history','account','admin'].forEach(function(n){ $(n + 'Tab').classList.toggle('active', n === t); });
+  document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.toggle('active', el.dataset.tab === t); });
+  $('headerTitle').textContent = TITLES[t];
+  if (t === 'tasks' && currentUser) renderTasks();
+}
+document.querySelectorAll('.nav-item').forEach(function(el){ el.onclick = function(){ switchTab(el.dataset.tab); }; });
+
+function showApp(admin){
+  isAdmin = admin;
+  $('loginScreen').classList.remove('active'); $('appScreen').classList.add('active');
+  $('mainNavBar').style.display = admin ? 'none' : 'flex';
+  $('coinBadge').style.display = admin ? 'none' : 'block';
+}
+
+/* ================= LOGIN ================= */
+$('mainLoginBtn').onclick = function(){
+  var email = $('emailInput').value.trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { alert("⚠️ सही ईमेल दर्ज करें!"); return; }
+  var pw = $('userPass').value;
+  if (authOn && pw.length < 6) { alert("⚠️ पासवर्ड कम से कम 6 अक्षर का रखें"); return; }
+  loginUser(email, pw);
+};
+var meta = {}, adLast = 0;
+function today(){ return new Date().toDateString(); }
+function saveMeta(){ return store.set('meta/' + encKey(currentUser), meta); }
+function mkCode(e){ var h = 5381; for (var i = 0; i < e.length; i++) h = ((h << 5) + h + e.charCodeAt(i)) >>> 0; return 'RZ' + h.toString(36).toUpperCase().slice(0, 5); }
+function uniqueCode(e, n){
+  var c = mkCode(e + (n || ''));
+  return store.get('codes/' + c).then(function(o){ return (o && o !== e) ? uniqueCode(e, (n || 0) + 1) : c; });
+}
+function authStep(email, pass){
+  if (!pass && fbauth.currentUser && fbauth.currentUser.email === email) return Promise.resolve();
+  return fbauth.createUserWithEmailAndPassword(email, pass).catch(function(e){
+    if (e.code === 'auth/email-already-in-use') return fbauth.signInWithEmailAndPassword(email, pass);
+    throw e;
+  }).catch(function(e){
+    var m = { 'auth/invalid-credential': "❌ पासवर्ड गलत है", 'auth/wrong-password': "❌ पासवर्ड गलत है", 'auth/weak-password': "⚠️ पासवर्ड कम से कम 6 अक्षर का रखें", 'auth/invalid-api-key': "⚠️ API key गलत है, फ़ाइल में दोबारा चेक करें", 'auth/api-key-not-valid.-please-pass-a-valid-api-key.': "⚠️ API key गलत है", 'auth/operation-not-allowed': "⚠️ Firebase में Email/Password login चालू करें", 'auth/too-many-requests': "⏳ बहुत कोशिशें हुईं, थोड़ी देर बाद आएं" }[e.code];
+    if (m) { alert(m); throw new Error('stop'); }
+    throw e;
+  });
+}
+function ownerCheck(pw){
+  if (authOn) return fbauth.signInWithEmailAndPassword(($('emailInput').value || '').trim().toLowerCase(), pw)
+    .then(function(){ return fbdb.ref('users').once('value').then(function(){ return true; }); })
+    .catch(function(){ return fbauth.signOut().then(function(){ return false; }); });
+  if (!(window.crypto && crypto.subtle)) { alert("Admin login ke liye https ya localhost chahiye."); return Promise.resolve(false); }
+  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw)).then(function(buf){
+    return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2, '0'); }).join('') === ADMIN_HASH;
+  });
+}
+function loginUser(email, pass){
+  var btn = $('mainLoginBtn'); btn.disabled = true; btn.textContent = "Loading...";
+  var ref = ($('refInput').value || '').trim().toUpperCase();
+  var dev = lsGet('rz_dev', '');
+  if (!dev) { dev = 'D' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); lsSet('rz_dev', dev); }
+  var fail = function(m){ alert(m); throw new Error('stop'); };
+  (authOn ? authStep(email, pass) : Promise.resolve()).then(function(){ return store.get('meta/' + encKey(email)); }).then(function(m){
+    meta = m || {};
+    return store.get('bans/' + encKey(email)).then(function(b){ if (b) fail("🚫 यह अकाउंट बैन है।"); return store.get('devices/' + dev); }).then(function(o){
+      if (o && o !== email) fail("⚠️ इस डिवाइस पर पहले से दूसरा अकाउंट है।");
+      return store.set('devices/' + dev, email);
+    });
+  }).then(function(){ return loadCfg().then(function(){ return store.load(email); }); }).then(function(c){
+    coins = c; currentUser = email;
+    if (meta.code) return;
+    return uniqueCode(email).then(function(code){
+    meta = { email: email, code: code, joined: Date.now() };
+    var done = (ref && ref !== meta.code) ? store.get('codes/' + ref).then(function(r){
+      if (r && r !== email) { meta.ref = r; return Promise.all([store.add(r, REF_BONUS), store.add(email, REF_BONUS).then(function(n){ coins = n; })]); }
+    }) : Promise.resolve();
+    return done.then(function(){ return Promise.all([store.set('codes/' + meta.code, email), saveMeta()]); });
+    });
+  }).then(function(){
+    lsSet('rz_session', email);
+    $('profileEmail').textContent = email; $('myCode').textContent = meta.code;
+    showApp(false); switchTab('earn'); updateUI(); adInfo(); streakInfo();
+    store.listen(function(list){ requests = list; renderHistory(); }, email);
+  }).catch(function(e){
+    currentUser = ""; lsSet('rz_session', "");
+    if (e.message !== 'stop') alert("❌ Firebase se connect nahi hua. FIREBASE_DB_URL aur database rules check karo.");
+  }).then(function(){ btn.disabled = false; btn.textContent = "Login / Sign Up"; });
+}
+
+var LOCK = [120e3, 1200e3, 108e5, 144e5];   // 2 min, 20 min, 3 ghante, phir 4 ghante; 10 galat = phone block
+function fmtWait(ms){ var m = Math.ceil(ms / 6e4); return m >= 60 ? Math.ceil(m / 60) + " घंटे" : m + " मिनट"; }
+$('secretAdminBtn').onclick = function(){
+  var st = lsGet('rz_adm', { n: 0, until: 0 });
+  if (st.n >= 10) { alert("🚫 बहुत ज़्यादा गलत कोशिशें। इस फ़ोन से Owner login बंद है।"); return; }
+  if (st.until > Date.now()) { alert("⏳ " + fmtWait(st.until - Date.now()) + " बाद कोशिश करें।"); return; }
+  var pw = $('passInput').value;
+  ownerCheck(pw).then(function(ok){
+    if (!ok) {
+      st.n++; var w = LOCK[Math.min(st.n, LOCK.length) - 1]; st.until = Date.now() + w; lsSet('rz_adm', st);
+      alert(st.n >= 10 ? "🚫 इस फ़ोन से Owner login बंद हो गया।" : "❌ गलत पासवर्ड! " + fmtWait(w) + " बाद फिर कोशिश करें। (" + (10 - st.n) + " मौके बचे)");
+      return;
+    }
+    lsSet('rz_adm', { n: 0, until: 0 });
+    showApp(true); switchTab('admin'); loadCfg().then(fillCfg); renderAdminTasks(); renderAdminSubs();
+    store.listen(function(list){ requests = list; renderAdmin(); });
+  });
+};
+
+$('logoutBtn').onclick = function(){
+  store.stop(); if (authOn) fbauth.signOut(); lsSet('rz_session', ""); currentUser = ""; requests = []; coins = 0;
+  $('passInput').value = ""; $('appScreen').classList.remove('active'); $('loginScreen').classList.add('active');
+};
+
+/* ================= EARN / INVITE ================= */
+function playRewardedAd(){
+  var A = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.AdMob;
+  if (!A) return new Promise(function(res){ setTimeout(function(){ res(true); }, 1500); });   // browser demo
+  return new Promise(function(res){                                                           // asli AdMob (APK)
+    var got = false;
+    A.initialize({}).then(function(){
+      A.addListener('onRewardedVideoAdReward', function(){ got = true; });
+      A.addListener('onRewardedVideoAdDismissed', function(){ res(got); });
+      A.addListener('onRewardedVideoAdFailedToLoad', function(){ alert("Ad abhi available nahi, baad me try karo"); res(false); });
+      return A.prepareRewardVideoAd({ adId: ADMOB_REWARD_ID });
+    }).then(function(){ return A.showRewardVideoAd(); }).catch(function(){ res(false); });
+  });
+}
+function adInfo(){ if (meta.adDay !== today()) { meta.adDay = today(); meta.adN = 0; } $('adLeft').textContent = "आज के ads: " + meta.adN + (AD_MAX === Infinity ? "" : "/" + AD_MAX); }
+function streakInfo(){ $('streakTxt').textContent = meta.st ? "🔥 " + meta.st + " दिन" : ""; }
+$('watchAdButton').onclick = function(){
+  adInfo();
+  if (meta.adN >= AD_MAX) { alert("आज की लिमिट पूरी। कल फिर आएं!"); return; }
+  var w = AD_GAP - (Date.now() - adLast);
+  if (w > 0) { alert("⏳ " + Math.ceil(w / 1000) + " सेकंड बाद अगला ad देखें।"); return; }
+  var b = this; b.disabled = true; b.textContent = "⏳ विज्ञापन लोड हो रहा है...";
+  var reset = function(){ b.disabled = false; b.textContent = "📺 Watch Video Ad"; };
+  playRewardedAd().then(function(ok){
+    if (!ok) return;
+    adLast = Date.now(); meta.adN++;
+    return saveMeta().then(function(){ return store.add(currentUser, AD_REWARD); }).then(function(c){ coins = c; updateUI(); adInfo(); alert("🎉 " + AD_REWARD + " कॉइन्स जुड़ गए!"); });
+  }).then(reset, reset);
+};
+$('checkinBtn').onclick = function(){
+  if (meta.ci === today()) { alert("आज का check-in हो चुका है ✅"); return; }
+  meta.st = (meta.ci === new Date(Date.now() - 864e5).toDateString()) ? (meta.st || 0) + 1 : 1; meta.ci = today();
+  var r = CHECKIN[(meta.st - 1) % 7];
+  saveMeta().then(function(){ return store.add(currentUser, r); }).then(function(c){ coins = c; updateUI(); streakInfo(); alert("🗓️ Day " + meta.st + ": +" + r + " कॉइन्स!"); });
+};
+$('spinBtn').onclick = function(){
+  if (meta.sp === today()) { alert("आज का spin हो चुका है। कल फिर!"); return; }
+  meta.sp = today();
+  var r = SPIN[Math.floor(Math.random() * SPIN.length)], b = this, n = 0; b.disabled = true;
+  var t = setInterval(function(){
+    b.textContent = "🎡 " + SPIN[Math.floor(Math.random() * SPIN.length)];
+    if (++n > 12) {
+      clearInterval(t);
+      saveMeta().then(function(){ return store.add(currentUser, r); }).then(function(c){ coins = c; updateUI(); b.disabled = false; b.textContent = "🎡 Spin"; alert("🎡 +" + r + " कॉइन्स जीते!"); });
+    }
+  }, 100);
+};
+$('copyCodeBtn').onclick = function(){
+  var done = function(){ alert("📋 कॉपी हुआ!"); };
+  if (navigator.clipboard) navigator.clipboard.writeText(meta.code).then(done, done); else done();
+};
+$('shareWhatsappBtn').onclick = function(){
+  window.open("https://wa.me/?text=" + encodeURIComponent("RewardZone जॉइन करो और कमाओ! साइन अप पर मेरा कोड डालो: " + meta.code), "_blank");
+};
+$('legalLink').onclick = function(){ $('loginScreen').classList.remove('active'); $('legal').classList.add('active'); };
+$('legalClose').onclick = function(){ $('legal').classList.remove('active'); $('loginScreen').classList.add('active'); };
+
+/* ================= WITHDRAW GRID ================= */
+function buildGrid(el, list, type, tag, btnClass){
+  el.innerHTML = list.map(function(i){
+    return '<div class="grid-box' + (i[3] ? ' wide' : '') + '"><span class="box-logo-tag">' + tag + '</span>' +
+      '<div class="box-rupees">₹' + i[0] + '</div><p class="box-desc">' + i[2] + '</p>' +
+      '<span class="box-coins-needed">🪙 ' + i[1] + '</span>' +
+      '<button class="grid-withdraw-btn ' + btnClass + '" data-rs="' + i[0] + '" data-cost="' + i[1] + '" data-type="' + type + '">Withdraw</button></div>';
+  }).join('');
+}
+buildGrid($('paytmGrid'), PAYTM, "Paytm", "Paytm", "btn-paytm");
+buildGrid($('playGrid'), PLAY, "Play Code", "🎁", "btn-gold");
+buildGrid($('upiGrid'), UPI, "UPI", "UPI", "btn-paytm");
+
+document.addEventListener('click', function(e){
+  var b = e.target.closest('.grid-withdraw-btn'); if (!b || !currentUser) return;
+  var hr = new Date().getHours();
+  if (hr < 11 || hr >= 17) { alert("⏰ विड्रॉ सिर्फ सुबह 11 से शाम 5 बजे खुलेगा।"); return; }
+  var cost = parseInt(b.dataset.cost, 10), rs = b.dataset.rs, type = b.dataset.type;
+  if (coins < cost) { alert("⚠️ कॉइन्स कम हैं!"); return; }
+  var detail = prompt({ Paytm: "अपना 10 अंकों का Paytm नंबर डालें:", UPI: "अपनी UPI ID डालें (name@bank):" }[type] || "अपनी ईमेल आईडी दर्ज करें:");
+  if (detail === null) return; detail = detail.trim();
+  if (!detail) { alert("❌ जानकारी देना ज़रूरी है!"); return; }
+  if (type === "Paytm" && !/^\d{10}$/.test(detail)) { alert("❌ सही 10 अंकों का नंबर डालें!"); return; }
+  if (type === "UPI" && !/^[\w.\-]{2,}@\w{2,}$/.test(detail)) { alert("❌ सही UPI ID डालें!"); return; }
+  store.spend(currentUser, cost).then(function(c){
+    if (c === null) { alert("⚠️ कॉइन्स कम हैं!"); return; }
+    coins = c; updateUI();
+    var id = String(Date.now()) + Math.floor(Math.random() * 1000);
+    return store.put({ id: id, user: currentUser, rupees: rs, cost: cost, type: type, detail: detail, status: "pending", code: "", ts: Date.now() })
+      .then(function(){ alert("✅ विड्रॉ रिक्वेस्ट सबमिट हो गई!"); switchTab('history'); });
+  });
+});
+
+/* ================= HISTORY (user) ================= */
+var STATUS = { pending: ["Pending ⏳", "#eab308"], success: ["Success ✅", "#16a34a"], rejected: ["Rejected ❌ (कॉइन्स वापस)", "#ef4444"] };
+function renderHistory(){
+  var mine = requests.filter(function(r){ return r && r.user === currentUser; }).sort(function(a,b){ return b.ts - a.ts; });
+  $('userHistory').innerHTML = mine.length ? mine.map(function(r){
+    var s = STATUS[r.status] || STATUS.pending;
+    return '<div class="withdraw-item"><b>₹' + esc(r.rupees) + ' ' + esc(r.type) + '</b> (' + esc(r.detail) + ')<br>' +
+      '<span style="color:' + s[1] + '">' + s[0] + '</span>' +
+      (r.code ? '<div class="code-box">' + esc(r.code) + '</div>' : '') + '</div>';
+  }).join('') : '<p class="empty">कोई इतिहास नहीं है।</p>';
+}
+
+/* ================= ADMIN ================= */
+function shrink(file){
+  return new Promise(function(res, rej){
+    var r = new FileReader();
+    r.onload = function(){ var im = new Image(); im.onload = function(){
+      var sc = Math.min(1, 800 / Math.max(im.width, im.height)), c = document.createElement('canvas');
+      c.width = im.width * sc; c.height = im.height * sc; c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      res(c.toDataURL('image/jpeg', .6));
+    }; im.onerror = rej; im.src = r.result; };
+    r.onerror = rej; r.readAsDataURL(file);
+  });
+}
+var SUBST = { pending: ["⏳ जाँच चल रही है", "#eab308"], success: ["✅ Approved — कॉइन्स मिल गए", "#16a34a"], rejected: ["❌ Reject हुआ — फिर से भेजो", "#ef4444"] };
+function renderTasks(){
+  var box = $('taskBox');
+  store.load(currentUser).then(function(c){ coins = c; updateUI(); }).catch(function(){});
+  Promise.all([store.get('tasks'), store.list('subs/' + encKey(currentUser))]).then(function(a){
+    var list = Object.values(a[0] || {}).sort(function(x, y){ return y.ts - x.ts; }), mine = {};
+    a[1].forEach(function(x){ mine[x.id] = x; });
+    box.innerHTML = list.length ? "" : '<p class="empty">अभी कोई Task नहीं है।</p>';
+    list.forEach(function(k){
+      var sb = mine[k.id], st = sb ? sb.status : "", d = document.createElement('div'); d.className = 'withdraw-item';
+      d.innerHTML = '<b>' + esc(k.title) + '</b> <span style="color:#fbbf24;font-size:12px">+' + esc(k.coins) + ' 🪙</span>' +
+        (st ? '<br><span style="color:' + SUBST[st][1] + '">' + SUBST[st][0] + '</span>' : '');
+      var row = document.createElement('div'); row.className = 'row'; row.style.marginTop = '10px';
+      if (k.link) { var o = document.createElement('button'); o.className = 'grid-withdraw-btn btn-paytm'; o.textContent = '🔗 Task खोलो'; o.onclick = function(){ window.open(k.link, '_blank'); }; row.appendChild(o); }
+      if (st !== 'pending' && st !== 'success') {
+        var p = document.createElement('button'); p.className = 'grid-withdraw-btn btn-gold'; p.textContent = '📸 Proof भेजो';
+        p.onclick = function(){
+          var fi = document.createElement('input'); fi.type = 'file'; fi.accept = 'image/*';
+          fi.onchange = function(){
+            if (!fi.files[0]) return; p.disabled = true; p.textContent = '⏳ भेज रहे हैं...';
+            shrink(fi.files[0]).then(function(img){
+              var key = encKey(currentUser) + '/' + k.id;
+              return store.set('proofs/' + key, img).then(function(){ return store.set('subs/' + key, { id: k.id, user: currentUser, title: k.title, coins: Number(k.coins), status: 'pending', ts: Date.now() }); });
+            }).then(function(){ alert("📤 Proof भेज दिया! Owner की जाँच के बाद कॉइन्स मिलेंगे।"); renderTasks(); })
+              .catch(function(){ alert("❌ Proof नहीं जा सका, दोबारा कोशिश करें।"); p.disabled = false; p.textContent = '📸 Proof भेजो'; });
+          };
+          fi.click();
+        };
+        row.appendChild(p);
+      }
+      if (row.children.length) d.appendChild(row);
+      box.appendChild(d);
+    });
+  }).catch(function(){});
+}
+function renderAdminTasks(){
+  store.get('tasks').then(function(t){
+    var box = $('adminTasks'); box.innerHTML = "";
+    Object.values(t || {}).forEach(function(k){
+      var d = document.createElement('div'); d.className = 'withdraw-item'; d.innerHTML = '<b>' + esc(k.title) + '</b> · 🪙 ' + esc(k.coins) + (k.link ? '<br><span style="font-size:11px;color:#94a3b8;word-break:break-all">' + esc(k.link) + '</span>' : '');
+      var row = document.createElement('div'); row.className = 'row'; row.style.marginTop = '8px';
+      var e = document.createElement('button'); e.className = 'admin-send-btn'; e.textContent = 'Edit ✏️';
+      e.onclick = function(){
+        var n = prompt("Task का नाम:", k.title); if (n === null) return;
+        var c = prompt("कितने कॉइन्स:", k.coins); if (c === null) return;
+        var l = prompt("लिंक (खाली छोड़ सकते हो):", k.link || ""); if (l === null) return;
+        if (!n.trim() || !(Number(c) > 0) || (l.trim() && !/^https?:\/\//.test(l.trim()))) { alert("⚠️ गलत जानकारी"); return; }
+        store.get('tasks').then(function(t){ t = t || {}; if (t[k.id]) { t[k.id].title = n.trim(); t[k.id].coins = Number(c); t[k.id].link = l.trim(); } return store.set('tasks', t); }).then(renderAdminTasks);
+      };
+      var b = document.createElement('button'); b.className = 'reject-btn'; b.textContent = 'Delete';
+      b.onclick = function(){ store.get('tasks').then(function(t){ t = t || {}; delete t[k.id]; return store.set('tasks', t); }).then(renderAdminTasks); };
+      row.appendChild(e); row.appendChild(b); d.appendChild(row); box.appendChild(d);
+    });
+  });
+}
+function renderAdminSubs(){
+  store.list('subs').then(function(l){
+    var box = $('adminSubs'); l = l.filter(function(x){ return x.status === 'pending'; }).sort(function(a, b){ return a.ts - b.ts; });
+    box.innerHTML = l.length ? "" : '<p class="empty" style="margin-top:0">कोई pending proof नहीं।</p>';
+    l.forEach(function(x){
+      var key = encKey(x.user) + '/' + x.id, d = document.createElement('div'); d.className = 'withdraw-item';
+      d.innerHTML = '<b>' + esc(x.title) + '</b> · 🪙 ' + esc(x.coins) + '<br>' + esc(x.user) + '<div class="pv"></div>' +
+        '<button class="grid-withdraw-btn btn-paytm pvb" style="margin:8px 0">📷 Proof देखो</button><div class="row"><button class="admin-send-btn ok">Accept ✅</button><button class="reject-btn no">Reject ❌</button></div>';
+      d.querySelector('.pvb').onclick = function(){
+        var b = this; store.get('proofs/' + key).then(function(im){
+          var pv = d.querySelector('.pv');
+          if (typeof im === 'string' && /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(im)) { var g = new Image(); g.src = im; g.style.cssText = 'width:100%;border-radius:10px;margin-top:8px'; pv.appendChild(g); }
+          else pv.textContent = 'Proof नहीं मिला';
+          b.style.display = 'none';
+        });
+      };
+      var decide = function(ok){
+        store.get('subs/' + key).then(function(cur){
+          if (!cur || cur.status !== 'pending') return;
+          return store.get('tasks').then(function(t){
+            var amt = Number(((t || {})[cur.id] || cur).coins); cur.status = ok ? 'success' : 'rejected';
+            return store.set('subs/' + key, cur).then(function(){ return ok ? store.add(cur.user, amt) : null; }).then(function(){ return store.set('proofs/' + key, null); });
+          });
+        }).then(function(){ alert(ok ? "✅ Accept हो गया" : "❌ Reject हो गया"); renderAdminSubs(); });
+      };
+      d.querySelector('.ok').onclick = function(){ decide(true); };
+      d.querySelector('.no').onclick = function(){ decide(false); };
+      box.appendChild(d);
+    });
+  });
+}
+$('subRefresh').onclick = renderAdminSubs;
+$('tkAdd').onclick = function(){
+  var title = $('tkTitle').value.trim(), c = Number($('tkCoins').value), link = $('tkLink').value.trim();
+  if (!title || !(c > 0)) { alert("⚠️ नाम और कॉइन्स डालें"); return; }
+  if (link && !/^https?:\/\//.test(link)) { alert("⚠️ लिंक http:// या https:// से शुरू हो"); return; }
+  store.get('tasks').then(function(t){
+    t = t || {}; var id = 'T' + Date.now(); t[id] = { id: id, title: title, coins: c, link: link, ts: Date.now() }; return store.set('tasks', t);
+  }).then(function(){ ['tkTitle', 'tkCoins', 'tkLink'].forEach(function(i){ $(i).value = ""; }); renderAdminTasks(); alert("✅ Task जुड़ गया"); });
+};
+function loadCfg(){
+  return store.get('settings').then(function(c){
+    if (!c) return;
+    if (c.adMax != null) AD_MAX = c.adMax > 0 ? Number(c.adMax) : Infinity;
+    if (c.adGap != null) AD_GAP = Number(c.adGap);
+    if (c.adReward != null) AD_REWARD = Number(c.adReward);
+    if (c.refBonus != null) REF_BONUS = Number(c.refBonus);
+  }).catch(function(){});
+}
+function fillCfg(){
+  $('cfgMax').value = AD_MAX === Infinity ? 0 : AD_MAX; $('cfgGap').value = AD_GAP / 1000;
+  $('cfgRew').value = AD_REWARD; $('cfgRef').value = REF_BONUS;
+}
+$('cfgSave').onclick = function(){
+  var v = ['cfgMax', 'cfgGap', 'cfgRew', 'cfgRef'].map(function(i){ return Number($(i).value); });
+  if (v.some(function(n){ return isNaN(n) || n < 0; })) { alert("⚠️ सही नंबर डालें"); return; }
+  store.set('settings', { adMax: v[0], adGap: v[1] * 1000, adReward: v[2], refBonus: v[3] }).then(function(){ return loadCfg(); }).then(function(){ alert("✅ Settings सेव हो गईं"); });
+};
+function renderStats(){
+  store.allUsers().then(function(us){
+    var pend = requests.filter(function(r){ return r.status === "pending"; }).length;
+    var paid = requests.filter(function(r){ return r.status === "success"; }).reduce(function(t, r){ return t + Number(r.rupees); }, 0);
+    $('adminStats').innerHTML = '👥 Users: <b>' + us.length + '</b> · ⏳ Pending: <b>' + pend + '</b> · 💸 Paid: <b>₹' + paid + '</b>';
+    var box = $('adminUsers'); box.innerHTML = "";
+    us.forEach(function(u){
+      var d = document.createElement('div'); d.className = 'withdraw-item'; d.innerHTML = esc(u.email) + ' · 🪙 ' + u.coins;
+      var b = document.createElement('button'); b.className = 'reject-btn'; b.style.cssText = 'margin-top:8px;padding:6px 14px;display:block';
+      b.textContent = u.banned ? 'Unban' : 'Ban';
+      b.onclick = function(){ store.set('bans/' + encKey(u.email), u.banned ? null : true).then(renderStats); };
+      d.appendChild(b); box.appendChild(d);
+    });
+  });
+}
+function renderAdmin(){
+  renderStats(); renderAdminSubs();
+  var box = $('adminQueue');
+  var pend = requests.filter(function(r){ return r && r.status === "pending"; }).sort(function(a,b){ return a.ts - b.ts; });
+  if (!pend.length) { box.innerHTML = '<p class="empty">कोई पेंडिंग रिक्वेस्ट नहीं है।</p>'; return; }
+  // typed text na ud jaye isliye sirf naye cards banao
+  var existing = {}; box.querySelectorAll('.req-card').forEach(function(c){ existing[c.dataset.id] = c; });
+  var ids = pend.map(function(r){ return r.id; });
+  Object.keys(existing).forEach(function(id){ if (ids.indexOf(id) < 0) existing[id].remove(); });
+  if (box.querySelector('.empty')) box.innerHTML = "";
+  pend.forEach(function(r){
+    if (existing[r.id]) return;
+    var c = document.createElement('div'); c.className = "req-card"; c.dataset.id = r.id;
+    c.innerHTML = '<div><b>यूज़र:</b> ' + esc(r.user) + '</div><div>₹' + esc(r.rupees) + ' — ' + esc(r.type) + '</div>' +
+      '<div><b>' + ({ Paytm: 'Paytm नंबर', UPI: 'UPI ID' }[r.type] || 'ईमेल') + ':</b> ' + esc(r.detail) + '</div><div>🪙 ' + esc(r.cost) + '</div>' +
+      '<input type="text" placeholder="कोड / पेमेंट डिटेल / UTR">' +
+      '<div class="row"><button class="admin-send-btn">Send ✅</button><button class="reject-btn">Reject & Refund</button></div>';
+    c.querySelector('.admin-send-btn').onclick = function(){
+      var v = c.querySelector('input').value.trim(); if (!v) { alert("⚠️ विवरण भरें!"); return; }
+      store.patch(r.id, { status: "success", code: v });
+    };
+    c.querySelector('.reject-btn').onclick = function(){
+      if (!confirm("Reject karke " + r.cost + " coins " + r.user + " ko wapas dein?")) return;
+      store.patch(r.id, { status: "rejected" }).then(function(){ return store.add(r.user, r.cost); });
+    };
+    box.appendChild(c);
+  });
+}
+
+/* ================= AUTO LOGIN ================= */
+var saved = lsGet('rz_session', "");
+if (saved && authOn) { var un = fbauth.onAuthStateChanged(function(u){ un(); if (u && u.email === saved) { $('emailInput').value = saved; loginUser(saved, ""); } }); }
+else if (saved) { $('emailInput').value = saved; loginUser(saved); }
+</script>
+</body>
+</html>
