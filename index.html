@@ -107,12 +107,36 @@ input:focus { border-color: var(--vio); box-shadow: 0 0 0 3px rgba(124,58,237,.2
 #splash.hide { opacity: 0; pointer-events: none; }
 #toast { position: absolute; top: 18px; left: 50%; transform: translate(-50%, -120px); background: rgba(30,27,75,.96); border: 1px solid rgba(165,180,252,.35); padding: 12px 18px; border-radius: 14px; font-size: 14px; font-weight: 600; z-index: 100; max-width: 88%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,.5); transition: transform .35s cubic-bezier(.2,1.2,.4,1); }
 #toast.show { transform: translate(-50%, 0); }
+#apkBar{display:none;align-items:center;gap:10px;padding:10px 14px;background:linear-gradient(135deg,#4f46e5,#7c3aed);font-size:13px;font-weight:700}
+#apkBar a{margin-left:auto;background:#fff;color:#4f46e5;padding:7px 14px;border-radius:10px;text-decoration:none;font-weight:800;white-space:nowrap}
+#apkBar button{background:none;border:none;color:#fff;font-size:18px;cursor:pointer}
+#owOverlay{display:none;position:absolute;inset:0;z-index:95;background:#0a0e1a;flex-direction:column}
+#owOverlay .bar{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#151a33;font-weight:800}
+#owOverlay .bar a{margin-left:auto;color:#a5b4fc;text-decoration:none}
+#owOverlay .bar button{background:none;border:none;color:#fff;font-size:20px;cursor:pointer}
+#owFrame{flex:1;border:0;width:100%;background:#fff}
+/* ===== PHONE FIT: ऐप पूरी स्क्रीन में, सिर्फ़ अंदर का हिस्सा स्क्रोल हो ===== */
+html, body { height: 100%; }
+.phone-container { height: 100vh; height: 100dvh; min-height: 0; }
+.screen { overflow-y: auto; justify-content: safe center; }
+.main-app-screen, .app-body { min-height: 0; }
+@media (max-width: 500px) {
+  html, body { overflow: hidden; }
+  body { padding: 0; }
+  .phone-container { max-width: 100%; border: none; border-radius: 0; box-shadow: none; }
+  .screen { padding: 24px 20px; }
+}
+@media (min-width: 501px) { body { padding: 10px 0; } .phone-container { height: calc(100dvh - 20px); } }
+#toast { top: auto; bottom: 100px; transform: translate(-50%, 140px); }
+#toast.show { transform: translate(-50%, 0); }
 </style>
 </head>
 <body>
 <div class="phone-container">
   <div id="splash"><div class="logo"></div><h1 class="app-title" style="margin:0">RewardZone</h1></div>
   <div id="toast"></div>
+  <div id="owOverlay"><div class="bar"><span id="owTitle"></span><a id="owOpen" target="_blank" rel="noopener">↗ नए टैब में</a><button id="owClose">✕</button></div><iframe id="owFrame" src="about:blank" allow="clipboard-write"></iframe></div>
+  <div id="apkBar"><span>📲 RewardZone ऐप डाउनलोड करें</span><a href="#">Download</a><button aria-label="बंद करें">✕</button></div>
 
   <!-- LOGIN -->
   <div id="loginScreen" class="screen active">
@@ -139,6 +163,7 @@ input:focus { border-color: var(--vio); box-shadow: 0 0 0 3px rgba(124,58,237,.2
     <div class="app-header">
       <span id="headerTitle">RewardZone</span>
       <div class="header-right">
+        <div class="header-coin-badge" id="pendBadge" style="border-color:rgba(234,179,8,.6);color:#eab308">⏳ <span id="headerPending">0</span></div>
         <div class="header-coin-badge" id="coinBadge">🪙 <span id="headerCoins">0</span></div>
         <button class="logout-btn" id="logoutBtn" title="Logout">🚪</button>
       </div>
@@ -190,6 +215,9 @@ input:focus { border-color: var(--vio); box-shadow: 0 0 0 3px rgba(124,58,237,.2
 
       <div id="tasksTab" class="tab-content">
         <h3 class="grid-section-title">📋 Tasks (Proof भेजो, कॉइन्स पाओ)</h3>
+        <h3 class="grid-section-title">🤝 Offer & Survey Partners</h3>
+        <div class="withdraw-grid" id="partnerGrid"></div>
+        <h3 class="grid-section-title">📝 Owner के Tasks</h3>
         <div id="taskBox" class="full-width"></div>
       </div>
 
@@ -229,6 +257,13 @@ input:focus { border-color: var(--vio); box-shadow: 0 0 0 3px rgba(124,58,237,.2
           <b>📥 Task Proofs (जाँच बाकी)</b>
           <button class="grid-withdraw-btn btn-paytm" id="subRefresh" style="margin-top:8px">🔄 Refresh</button>
           <div id="adminSubs" style="margin-top:10px"></div>
+        </div>
+        <div class="req-card">
+          <b>🤝 Partner (Offerwall/Survey) जोड़ो</b>
+          <input id="ptName" placeholder="नाम (जैसे: CPX Research)">
+          <input id="ptUrl" placeholder="iframe लिंक, यूज़र ID की जगह {uid} लिखो">
+          <button class="admin-send-btn" id="ptAdd" style="width:100%">Add ✅</button>
+          <div id="adminPartners" style="margin-top:12px"></div>
         </div>
         <div id="adminStats" class="withdraw-item"></div>
         <p class="admin-subtitle">Pending User Cashouts</p>
@@ -402,7 +437,7 @@ function showApp(admin){
   isAdmin = admin;
   $('loginScreen').classList.remove('active'); $('appScreen').classList.add('active');
   $('mainNavBar').style.display = admin ? 'none' : 'flex';
-  $('coinBadge').style.display = admin ? 'none' : 'block';
+  $('coinBadge').style.display = admin ? 'none' : 'block'; $('pendBadge').style.display = admin ? 'none' : 'block';
 }
 
 /* ================= LOGIN ================= */
@@ -464,9 +499,9 @@ function loginUser(email, pass){
     return done.then(function(){ return Promise.all([store.set('codes/' + meta.code, email), saveMeta()]); });
     });
   }).then(function(){
-    lsSet('rz_session', email);
+    lsSet('rz_session', email); if (authOn && fbauth.currentUser) store.set('uids/' + fbauth.currentUser.uid, encKey(email));
     $('profileEmail').textContent = email; $('myCode').textContent = meta.code;
-    showApp(false); switchTab('earn'); updateUI(); adInfo(); streakInfo();
+    showApp(false); switchTab('earn'); updateUI(); adInfo(); streakInfo(); refreshPending();
     store.listen(function(list){ requests = list; renderHistory(); }, email);
   }).catch(function(e){
     currentUser = ""; lsSet('rz_session', "");
@@ -488,7 +523,7 @@ $('secretAdminBtn').onclick = function(){
       return;
     }
     lsSet('rz_adm', { n: 0, until: 0 });
-    showApp(true); switchTab('admin'); loadCfg().then(fillCfg); renderAdminTasks(); renderAdminSubs();
+    showApp(true); switchTab('admin'); loadCfg().then(fillCfg); renderAdminTasks(); renderAdminSubs(); renderAdminPartners();
     store.listen(function(list){ requests = list; renderAdmin(); });
   });
 };
@@ -614,7 +649,7 @@ function shrink(file){
 }
 var SUBST = { pending: ["⏳ जाँच चल रही है", "#eab308"], success: ["✅ Approved — कॉइन्स मिल गए", "#16a34a"], rejected: ["❌ Reject हुआ — फिर से भेजो", "#ef4444"] };
 function renderTasks(){
-  var box = $('taskBox');
+  var box = $('taskBox'); renderPartners(); refreshPending();
   store.load(currentUser).then(function(c){ coins = c; updateUI(); }).catch(function(){});
   Promise.all([store.get('tasks'), store.list('subs/' + encKey(currentUser))]).then(function(a){
     var list = Object.values(a[0] || {}).sort(function(x, y){ return y.ts - x.ts; }), mine = {};
@@ -647,6 +682,51 @@ function renderTasks(){
     });
   }).catch(function(){});
 }
+function refreshPending(){
+  if (!currentUser) return;
+  var k = encKey(currentUser);
+  Promise.all([store.list('subs/' + k), store.get('offers/' + k).catch(function(){ return null; })]).then(function(a){
+    var p = a[0].filter(function(x){ return x.status === 'pending'; }).reduce(function(t, x){ return t + Number(x.coins || 0); }, 0);
+    Object.values(a[1] || {}).forEach(function(o){ if (o && o.status === 'pending') p += Number(o.amount || 0); });
+    $('headerPending').textContent = p;
+  }).catch(function(){});
+}
+function renderPartners(){
+  store.get('partners').then(function(p){
+    var list = Object.values(p || {}), g = $('partnerGrid');
+    g.innerHTML = list.length ? "" : '<p class="empty" style="grid-column:span 2;margin:0">Partners जल्द आ रहे हैं…</p>';
+    list.forEach(function(x){
+      var d = document.createElement('div'); d.className = 'grid-box'; d.style.cursor = 'pointer';
+      d.innerHTML = '<div class="box-rupees" style="font-size:24px">🤝</div><b style="margin:6px 0">' + esc(x.name) + '</b><span class="box-desc">खोलो</span>';
+      d.onclick = function(){ openWall(x); }; g.appendChild(d);
+    });
+  }).catch(function(){});
+}
+function openWall(x){
+  var uid = (fbauth && fbauth.currentUser) ? fbauth.currentUser.uid : 'guest';
+  var url = String(x.url).replace(/\{uid\}/g, encodeURIComponent(uid));
+  if (!/^https:\/\//.test(url)) { alert("⚠️ Partner का लिंक गलत है"); return; }
+  $('owTitle').textContent = x.name; $('owOpen').href = url; $('owFrame').src = url; $('owOverlay').style.display = 'flex';
+}
+$('owClose').onclick = function(){ $('owFrame').src = 'about:blank'; $('owOverlay').style.display = 'none'; refreshPending(); };
+function renderAdminPartners(){
+  store.get('partners').then(function(p){
+    var box = $('adminPartners'); box.innerHTML = "";
+    Object.values(p || {}).forEach(function(x){
+      var d = document.createElement('div'); d.className = 'withdraw-item';
+      d.innerHTML = '<b>' + esc(x.name) + '</b><br><span style="font-size:11px;color:#94a3b8;word-break:break-all">' + esc(x.url) + '</span>';
+      var b = document.createElement('button'); b.className = 'reject-btn'; b.style.cssText = 'margin-top:8px;padding:6px 14px;display:block'; b.textContent = 'Delete';
+      b.onclick = function(){ store.get('partners').then(function(p){ p = p || {}; delete p[x.id]; return store.set('partners', p); }).then(renderAdminPartners); };
+      d.appendChild(b); box.appendChild(d);
+    });
+  });
+}
+$('ptAdd').onclick = function(){
+  var n = $('ptName').value.trim(), u = $('ptUrl').value.trim();
+  if (!n || !/^https:\/\//.test(u) || u.indexOf('{uid}') < 0) { alert("⚠️ नाम, https लिंक और {uid} तीनों चाहिए"); return; }
+  store.get('partners').then(function(p){ p = p || {}; var id = 'P' + Date.now(); p[id] = { id: id, name: n, url: u }; return store.set('partners', p); })
+    .then(function(){ $('ptName').value = ""; $('ptUrl').value = ""; renderAdminPartners(); alert("✅ Partner जुड़ गया"); });
+};
 function renderAdminTasks(){
   store.get('tasks').then(function(t){
     var box = $('adminTasks'); box.innerHTML = "";
@@ -768,6 +848,15 @@ function renderAdmin(){
     box.appendChild(c);
   });
 }
+
+/* ================= APK DOWNLOAD BAR (sirf browser me, ek bar band karne par dobara nahi) ================= */
+var APK_URL = "https://github.com/Kall-gamer/Reward-apk/releases/latest/download/RewardZone.apk";
+(function(){
+  var inApp = window.Capacitor || /; wv\)/.test(navigator.userAgent) || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  if (inApp || !/Android/i.test(navigator.userAgent) || lsGet('rz_nobar', false)) return;
+  var b = $('apkBar'); b.querySelector('a').href = APK_URL; b.style.display = 'flex';
+  b.querySelector('button').onclick = function(){ b.style.display = 'none'; lsSet('rz_nobar', true); };
+})();
 
 /* ================= AUTO LOGIN ================= */
 var saved = lsGet('rz_session', "");
