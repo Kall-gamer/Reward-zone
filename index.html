@@ -142,7 +142,7 @@ html, body { height: 100%; }
   <div id="loginScreen" class="screen active">
     <div class="logo"></div>
     <h1 class="app-title">RewardZone</h1>
-    <p class="app-subtitle">Watch · Earn · Withdraw</p>
+    <p class="app-subtitle">Tasks · Surveys · Rewards</p>
     <input type="email" id="emailInput" placeholder="अपनी ईमेल आईडी दर्ज करें" autocomplete="email">
     <input type="password" id="userPass" placeholder="पासवर्ड (कम से कम 6 अक्षर)" autocomplete="current-password">
     <input id="refInput" placeholder="रेफरल कोड (अगर है)" style="text-transform:uppercase">
@@ -193,7 +193,7 @@ html, body { height: 100%; }
           <div class="coin-display"><span id="userCoins">0</span><span class="small-r">R</span></div>
           <p class="balance-text">आपका कुल बैलेंस</p>
         </div>
-        <div class="click-ad-box">
+        <div class="click-ad-box" id="adBox" style="display:none">
           <p class="click-ad-text">वीडियो विज्ञापन देखें और कॉइंस कमाएं</p>
           <button id="watchAdButton" class="click-btn">📺 Watch Video Ad</button>
           <p id="adLeft" style="font-size:12px;color:#94a3b8;margin-top:10px"></p>
@@ -260,6 +260,8 @@ html, body { height: 100%; }
           <p style="font-size:12px;color:#94a3b8;margin-top:8px">दो ads के बीच गैप (सेकंड)</p><input id="cfgGap" type="number" min="0">
           <p style="font-size:12px;color:#94a3b8;margin-top:8px">एक ad पर कॉइन्स</p><input id="cfgRew" type="number" min="0">
           <p style="font-size:12px;color:#94a3b8;margin-top:8px">Referral बोनस (दोनों को)</p><input id="cfgRef" type="number" min="0">
+          <p style="font-size:12px;color:#94a3b8;margin-top:8px">Demo ad बटन (सिर्फ़ टेस्ट के लिए — असली नेटवर्क जुड़ने तक बंद रखो)</p>
+          <select id="cfgDemo" style="width:100%;padding:14px;margin-bottom:16px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);border-radius:14px;color:#fff;font-size:15px"><option value="0">बंद (यूज़र को नहीं दिखेगा)</option><option value="1">चालू (टेस्ट)</option></select>
           <button class="admin-send-btn" id="cfgSave" style="width:100%;margin-top:6px">Save ✅</button>
         </div>
         <div class="req-card">
@@ -320,6 +322,7 @@ var PLAY  = [[10,2000,"Play Code"],[20,3800,"200 Off 🔥"],[30,5500,"500 Off �
 var UPI = [[10,2000,"Min ₹10"],[20,3800,"UPI"],[50,9000,"UPI"],[100,17000,"UPI Mega",1]];
 var ADMOB_REWARD_ID = "ca-app-pub-3940256099942544/5224354917"; // TEST id. Live jaane se pehle apna Rewarded Ad Unit ID daalo
 var REF_BONUS = 100;   // referral par dono ko itne coins
+var DEMO_AD = false;   // demo ad button: default band
 var AD_MAX = 50, AD_GAP = 10000, CHECKIN = [10,15,20,25,30,40,100], SPIN = [5,5,10,10,15,20,30,50];
 
 /* ================= ICON, SPLASH, TOAST ================= */
@@ -806,23 +809,25 @@ $('tkAdd').onclick = function(){
     t = t || {}; var id = 'T' + Date.now(); t[id] = { id: id, title: title, coins: c, link: link, ts: Date.now() }; return store.set('tasks', t);
   }).then(function(){ ['tkTitle', 'tkCoins', 'tkLink'].forEach(function(i){ $(i).value = ""; }); renderAdminTasks(); alert("✅ Task जुड़ गया"); });
 };
+function applyDemo(){ var b = $('adBox'); if (b) b.style.display = DEMO_AD ? '' : 'none'; }
 function loadCfg(){
   return store.get('settings').then(function(c){
-    if (!c) return;
+    c = c || {};
+    if (c.demoAd != null) DEMO_AD = !!c.demoAd;
     if (c.adMax != null) AD_MAX = c.adMax > 0 ? Number(c.adMax) : Infinity;
     if (c.adGap != null) AD_GAP = Number(c.adGap);
     if (c.adReward != null) AD_REWARD = Number(c.adReward);
     if (c.refBonus != null) REF_BONUS = Number(c.refBonus);
-  }).catch(function(){});
+  }).catch(function(){}).then(applyDemo);
 }
 function fillCfg(){
   $('cfgMax').value = AD_MAX === Infinity ? 0 : AD_MAX; $('cfgGap').value = AD_GAP / 1000;
-  $('cfgRew').value = AD_REWARD; $('cfgRef').value = REF_BONUS;
+  $('cfgRew').value = AD_REWARD; $('cfgRef').value = REF_BONUS; $('cfgDemo').value = DEMO_AD ? '1' : '0';
 }
 $('cfgSave').onclick = function(){
   var v = ['cfgMax', 'cfgGap', 'cfgRew', 'cfgRef'].map(function(i){ return Number($(i).value); });
   if (v.some(function(n){ return isNaN(n) || n < 0; })) { alert("⚠️ सही नंबर डालें"); return; }
-  store.set('settings', { adMax: v[0], adGap: v[1] * 1000, adReward: v[2], refBonus: v[3] }).then(function(){ return loadCfg(); }).then(function(){ alert("✅ Settings सेव हो गईं"); });
+  store.set('settings', { adMax: v[0], adGap: v[1] * 1000, adReward: v[2], refBonus: v[3], demoAd: $('cfgDemo').value === '1' }).then(function(){ return loadCfg(); }).then(function(){ alert("✅ Settings सेव हो गईं"); });
 };
 function renderStats(){
   store.allUsers().then(function(us){
